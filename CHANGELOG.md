@@ -7,7 +7,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [2.0.0] - 2026-02-10
 
-### 🎉 Versión de Producción - 100% Confiable
+### 🎉 Versión de Producción
 
 Esta versión representa una reescritura completa del sistema con enfoque en confiabilidad y estabilidad.
 
@@ -55,15 +55,15 @@ Esta versión representa una reescritura completa del sistema con enfoque en con
 ### Performance
 - Throughput: 15-27 req/s (dependiendo de concurrencia)
 - Latencia P95: 2.2s (50 concurrent) - 7.1s (200 concurrent)
-- Memoria estable: ~1.1 GB sin leaks
-- 100% de tasa de éxito validada con 2,200+ requests
+- Arquitectura estable con worker único
+- Retry logic robusto con exponential backoff
 
 ### Validación
-- ✅ 2,200+ requests sin un solo error
-- ✅ 0 errores de ONNX Runtime
-- ✅ 0 memory leaks
-- ✅ 100% de recuperación de errores
-- ✅ Estable hasta 200 requests concurrentes
+- ✅ Validado con más de 2,200 requests
+- ✅ Arquitectura de worker único elimina race conditions
+- ✅ Retry logic con exponential backoff
+- ✅ Detección automática de corrupción del modelo
+- ✅ Estable bajo alta concurrencia (200+ requests)
 
 ---
 

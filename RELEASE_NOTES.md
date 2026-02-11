@@ -90,16 +90,16 @@ Agrega badges al README.md:
 
 ## 📊 Características Destacadas
 
-### 100% Confiable
-- Validado con 2,200+ requests sin errores
-- 0 errores de ONNX Runtime
-- 0 memory leaks
-- Estable bajo carga extrema (200 concurrent)
+### Arquitectura Robusta
+- Validado con más de 2,200 requests
+- Worker único elimina race conditions
+- Retry logic con exponential backoff
+- Detección automática de corrupción del modelo
 
 ### Alto Rendimiento
 - Throughput: 15-27 req/s
 - Latencia P95: 2.2s - 7.1s
-- Memoria estable: ~1.1 GB
+- Optimizado para GPU NVIDIA
 
 ### Fácil de Usar
 - Instalación con un comando

@@ -1,6 +1,6 @@
 # Oceano - Sistema de Reconocimiento Facial
 
-Sistema de reconocimiento facial de alto rendimiento basado en InsightFace (modelo antelopev2) y Qdrant para búsqueda vectorial. Optimizado para producción con 100% de confiabilidad.
+Sistema de reconocimiento facial de alto rendimiento basado en InsightFace (modelo antelopev2) y Qdrant para búsqueda vectorial. Optimizado para producción con arquitectura robusta y estable.
 
 ## 🎯 Características
 
@@ -9,7 +9,7 @@ Sistema de reconocimiento facial de alto rendimiento basado en InsightFace (mode
 - **API REST** con FastAPI
 - **Interfaz web** para búsquedas interactivas
 - **Ingesta masiva** de imágenes con procesamiento paralelo
-- **100% confiable** - Sin errores de ONNX Runtime
+- **Arquitectura robusta** con retry logic y manejo de errores
 - **Optimizado para GPU** NVIDIA con CUDA
 - **Dockerizado** para fácil despliegue
 
@@ -115,23 +115,18 @@ Para agregar imágenes a la base de datos:
 ```bash
 # Ingesta desde una carpeta
 docker exec oceano-api python3 -m app.ingest \
-  --folder /ruta/a/imagenes \
-  --collection faces \
-  --batch-size 100
-
-# Ingesta con metadatos desde CSV
-docker exec oceano-api python3 -m app.ingest \
-  --csv datos.csv \
-  --collection faces \
-  --batch-size 100
+  --path /ruta/a/imagenes \
+  --batch 100
 ```
 
-### Formato del CSV
+### Opciones de Ingesta
 
-```csv
-path,dui,nombre,apellido
-/ruta/imagen1.jpg,12345678-9,Juan,Pérez
-/ruta/imagen2.jpg,98765432-1,María,González
+```bash
+# Opciones disponibles
+--path       Directorio o archivo de imágenes (requerido)
+--batch      Tamaño de lote para upsert (default: 1024)
+--no-resume  Ignorar estado y reprocesar todo
+--workers    Número de threads para I/O paralelo (default: 32)
 ```
 
 ## ⚙️ Configuración
@@ -221,9 +216,11 @@ environment:
 - 100 concurrent: ~5.0s
 - 200 concurrent: ~7.1s
 
-### Memoria
-- Uso estable: ~1.1 GB
-- Sin memory leaks
+### Estabilidad
+- Arquitectura de worker único para evitar race conditions
+- Retry logic con exponential backoff
+- Detección automática de corrupción del modelo
+- Manejo robusto de errores
 
 ## 🔧 Solución de Problemas
 
@@ -361,4 +358,4 @@ Para preguntas o soporte, abre un issue en GitHub.
 
 ---
 
-**Nota:** Este sistema ha sido probado exhaustivamente con más de 2,200 requests sin un solo error. Es 100% confiable y está listo para producción.
+**Nota:** Este sistema ha sido optimizado y validado exhaustivamente para entornos de producción con arquitectura robusta y manejo de errores.
