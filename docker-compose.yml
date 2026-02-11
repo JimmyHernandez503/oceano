@@ -1,0 +1,111 @@
+services:
+  api:
+    container_name: oceano-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+    ports:
+      - "9100:7860"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    environment:
+      # CRÍTICO: 1 SOLO WORKER para evitar race conditions en ONNX Runtime
+      # El modelo InsightFace NO es thread-safe entre procesos
+      - UVICORN_WORKERS=1
+      - UVICORN_WORKERS_GPU_MAX=1
+      
+      # Alta concurrencia asíncrona para compensar el worker único
+      - UVICORN_LIMIT_CONCURRENCY=256
+      - UVICORN_BACKLOG=16384
+      - UVICORN_TIMEOUT_KEEPALIVE=30
+      
+      # GPU: 1 request a la vez para evitar corrupción de memoria
+      - GPU_CONCURRENCY=1
+      - GPU_ACQUIRE_TIMEOUT=5.0
+      
+      # Timeouts
+      - REQUEST_TIMEOUT=30
+      
+      # Threads para operaciones CPU
+      - OMP_NUM_THREADS=2
+      - MKL_NUM_THREADS=2
+      
+      # Qdrant
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_GRPC_URL=http://qdrant:6334
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_GRPC_HOST=qdrant
+      - QDRANT_GRPC_PORT=6334
+      
+      # Colección y datos
+      - COLLECTION_NAME=faces
+      - THUMBS_DIR=/data/thumbs
+      - SQLITE_DB=/state/ingestion.db
+      
+      # Modelo InsightFace antelopev2
+      - INSIGHTFACE_MODELS=/models
+      - MODEL_NAME=antelopev2
+      - DET_SIZE=640,640
+      - MAX_SIDE=1600
+      - DOWNSCALE_TO=1280
+      
+      # Parámetros de búsqueda
+      - TOP_K=10
+      - SIM_THRESHOLD=0.0
+      - HNSW_EF=512
+      - QUANTIZATION=scalar
+
+    depends_on:
+      - qdrant
+
+    volumes:
+      - ./logs:/logs
+      - ./state:/state
+      - ./thumbs:/data/thumbs
+      - ./models:/models
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  qdrant:
+    container_name: oceano-qdrant
+    image: qdrant/qdrant:v1.12.0
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 48G
+          cpus: '16'
+        reservations:
+          memory: 24G
+          cpus: '8'
+
+    environment:
+      # Optimización de rendimiento
+      - QDRANT__SERVICE__MAX_REQUEST_SIZE_MB=100
+      - QDRANT__STORAGE__PERFORMANCE__MAX_SEARCH_THREADS=16
+      - QDRANT__STORAGE__OPTIMIZERS__MAX_OPTIMIZATION_THREADS=8
+      - QDRANT__STORAGE__PERFORMANCE__OPTIMIZER_CPU_BUDGET=8
+      - QDRANT__LOG_LEVEL=INFO
+
+    ports:
+      - "9101:6333"
+      - "9102:6334"
+
+    volumes:
+      - ./qdrant_storage:/qdrant/storage
